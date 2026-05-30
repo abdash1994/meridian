@@ -1,5 +1,5 @@
 """
-Meridian - AI Engineering Intelligence Platform
+TokenLens - AI Engineering Intelligence Platform
 server.py: Lightweight HTTP server. Serves the dashboard SPA and a
 JSON REST API backed by the local SQLite database.
 """
@@ -33,7 +33,7 @@ def _parse_qs_single(qs: dict, key: str, default=None):
     return vals[0] if vals else default
 
 
-class MeridianHandler(BaseHTTPRequestHandler):
+class TokenLensHandler(BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         pass  # suppress default access log noise
@@ -99,7 +99,7 @@ class MeridianHandler(BaseHTTPRequestHandler):
 
 def run(host: str = "localhost", port: int = 7777, open_browser: bool = True):
     # Perform initial scan before serving
-    print("⚡ Meridian — scanning usage data…", flush=True)
+    print("⚡ TokenLens — scanning usage data…", flush=True)
     result = scanner.scan()
     print(
         f"   ✓ {result['files_scanned']} files scanned  "
@@ -108,7 +108,7 @@ def run(host: str = "localhost", port: int = 7777, open_browser: bool = True):
         flush=True,
     )
 
-    server = HTTPServer((host, port), MeridianHandler)
+    server = HTTPServer((host, port), TokenLensHandler)
     url = f"http://{host}:{port}"
     print(f"\n   Dashboard → {url}\n   Ctrl+C to stop\n", flush=True)
 

@@ -1,27 +1,27 @@
-# Meridian — AI Engineering Intelligence Platform
+# TokenLens — AI Engineering Intelligence Platform
 
 > **Built by [Aditya Bikram Dash](https://github.com/abdash1994)**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-6366F1.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-10B981)](https://github.com/abdash1994/meridian)
-[![GitHub Pages](https://img.shields.io/badge/Pitch%20Deck-Live-8B5CF6)](https://abdash1994.github.io/meridian)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-10B981)](https://github.com/abdash1994/tokenlens)
+[![GitHub Pages](https://img.shields.io/badge/Pitch%20Deck-Live-8B5CF6)](https://abdash1994.github.io/tokenlens)
 
 **Don't just track your AI spend — understand it, reduce it, and prove its value.**
 
-Meridian reads Claude Code's local session logs and turns raw token data into an **Efficiency Score**, **actionable recommendations with dollar savings**, and a **developer ROI calculator** — all with zero cloud dependencies and a single command.
+TokenLens reads Claude Code's local session logs and turns raw token data into an **Efficiency Score**, **actionable recommendations with dollar savings**, and a **developer ROI calculator** — all with zero cloud dependencies and a single command.
 
 ---
 
 ## Live Demo
 
-**[View the Pitch Deck →](https://abdash1994.github.io/meridian)**
+**[View the Pitch Deck →](https://abdash1994.github.io/tokenlens)**
 
 ---
 
-## What Makes Meridian Different
+## What Makes TokenLens Different
 
-| | Other tools | **Meridian** |
+| | Other tools | **TokenLens** |
 |---|---|---|
 | Token counts & cost charts | ✅ | ✅ |
 | **Efficiency Score (A–F)** | ❌ | ✅ |
@@ -40,8 +40,8 @@ Meridian reads Claude Code's local session logs and turns raw token data into an
 **Requirements:** Python 3.10+ · macOS / Linux / Windows · No pip installs needed
 
 ```bash
-git clone https://github.com/abdash1994/meridian
-cd meridian
+git clone https://github.com/abdash1994/tokenlens
+cd tokenlens
 python3 cli.py dashboard
 ```
 
@@ -51,10 +51,10 @@ Opens your browser at **http://localhost:7777** — dashboard + pitch deck ready
 
 ## How It Works
 
-Claude Code writes one JSONL file per session to `~/.claude/projects/`. Meridian:
+Claude Code writes one JSONL file per session to `~/.claude/projects/`. TokenLens:
 
 1. **Scans** those files incrementally (only new/changed files processed)
-2. **Stores** parsed data in SQLite at `~/.meridian/meridian.db`
+2. **Stores** parsed data in SQLite at `~/.tokenlens/tokenlens.db`
 3. **Scores** each session and project with its Intelligence Engine
 4. **Serves** a real-time dashboard at `localhost:7777`
 
@@ -116,7 +116,7 @@ Converts AI spend into business language your CTO understands:
 ## Architecture
 
 ```
-meridian/
+tokenlens/
 ├── scanner.py          # Incremental JSONL → SQLite parser
 ├── analyzer.py         # Intelligence engine (scoring, recs, ROI, anomalies)
 ├── server.py           # HTTP server + REST API

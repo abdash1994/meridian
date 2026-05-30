@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meridian — AI Engineering Intelligence</title>
+  <title>TokenLens — AI Engineering Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -265,6 +265,17 @@
     .score-bar-track-fill{height:100%;border-radius:2px;background:var(--indigo)}
     .score-bar-num{width:22px;text-align:right;font-family:var(--mono);flex-shrink:0}
 
+    /* ── EYE TOGGLE BTN (in column headers) ── */
+    .eye-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      background:none;border:none;cursor:pointer;padding:2px 4px;
+      color:var(--text3);border-radius:4px;vertical-align:middle;
+      margin-left:3px;transition:color .15s,background .15s;
+    }
+    .eye-btn:hover{color:var(--text2);background:var(--border)}
+    .eye-btn.unmasked{color:var(--green)}
+    .eye-svg{display:block;pointer-events:none}
+
     /* ── FOOTER ── */
     footer{
       margin-top:auto;padding:16px 28px;border-top:1px solid var(--border);
@@ -295,9 +306,9 @@
 <!-- NAV -->
 <nav>
   <div class="nav-brand">
-    <div class="nav-logo">M</div>
+    <div class="nav-logo">T</div>
     <div>
-      <div class="nav-title">Meridian</div>
+      <div class="nav-title">TokenLens</div>
       <div class="nav-sub">AI Engineering Intelligence</div>
     </div>
   </div>
@@ -458,12 +469,11 @@
       <table>
         <thead>
           <tr>
-            <th>Project</th>
+            <th>Project <button onclick="toggleMask()" id="projMaskBtn" class="eye-btn" title="Click to show/hide project names"><svg class="eye-svg" id="projEyeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button></th>
             <th>Sessions</th>
             <th>Total Spend</th>
             <th>7-day Spend</th>
-            <th style="min-width:120px"
-                data-tip="% context from cache">Cache Hit</th>
+            <th style="min-width:120px" data-tip="% context from cache">Cache Hit</th>
             <th data-tip="0–100 composite score">Eff. Score</th>
             <th>Grade</th>
             <th>Last Active</th>
@@ -498,7 +508,7 @@
       <table>
         <thead>
           <tr>
-            <th>Session ID</th>
+            <th>Session ID <button onclick="toggleMask()" id="sessMaskBtn" class="eye-btn" title="Click to show/hide names"><svg class="eye-svg" id="sessEyeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button></th>
             <th>Project</th>
             <th>Date</th>
             <th>Cost</th>
@@ -521,15 +531,55 @@
 </main>
 
 <footer>
-  <span>Meridian v1.0 — AI Engineering Intelligence Platform</span>
+  <span>TokenLens v1.0 — AI Engineering Intelligence Platform</span>
   <span id="footerStats" style="color:var(--text3)">—</span>
 </footer>
 
 <script>
 // ── Globals ───────────────────────────────────────────────────────────────
-let projects  = [];
-let costChart = null, donutChart = null;
+let projects   = [];
+let costChart  = null, donutChart = null;
+let maskNames  = true;   // default: masked for privacy / demo safety
 const $ = id => document.getElementById(id);
+
+// ── Name masking ──────────────────────────────────────────────────────────
+function maskName(name) {
+  if (!name || name.length <= 2) return name || '—';
+  if (!maskNames) return name;
+  // Show first char + stars + last char
+  // e.g. "insight-brain" → "i***********n"
+  return name[0] + '·'.repeat(Math.min(name.length - 2, 10)) + name[name.length - 1];
+}
+function maskBranch(branch) {
+  if (!branch || branch === '—' || !maskNames) return branch || '—';
+  if (branch.length <= 3) return branch;
+  return branch[0] + '·'.repeat(Math.min(branch.length - 2, 8)) + branch[branch.length - 1];
+}
+function maskSessionId(id) {
+  if (!id || !maskNames) return id ? id.slice(0, 8) + '…' : '—';
+  return id[0] + '·'.repeat(6) + id[id.length - 1] + '…';
+}
+const EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+const EYE_OFF  = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+
+function syncEyeIcons() {
+  ['projMaskBtn','sessMaskBtn'].forEach(id => {
+    const btn = $(id); if (!btn) return;
+    btn.classList.toggle('unmasked', !maskNames);
+    btn.title = maskNames ? 'Click to reveal project names' : 'Click to hide project names';
+  });
+  ['projEyeIcon','sessEyeIcon'].forEach(id => {
+    const el = $(id); if (!el) return;
+    el.innerHTML = maskNames ? EYE_OFF : EYE_OPEN;
+  });
+}
+
+function toggleMask() {
+  maskNames = !maskNames;
+  syncEyeIcons();
+  if (projects.length) renderProjects(projects);
+  loadSessions();
+}
 
 // ── Formatters ────────────────────────────────────────────────────────────
 function fmtCost(v) {
@@ -795,19 +845,26 @@ async function loadRecs() {
     return;
   }
 
-  el.innerHTML = recs.map(r=>`
+  el.innerHTML = recs.map(r=>{
+    // Mask project name inside title and description if present
+    const maskText = txt => {
+      if (!maskNames || !r.project) return txt;
+      return txt.replace(new RegExp(r.project.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), maskName(r.project));
+    };
+    return `
     <div class="rec-card">
       <div style="display:flex;gap:10px;align-items:flex-start">
         ${recIconHtml(r.type)}
-        <div class="rec-title">${r.title}</div>
+        <div class="rec-title">${maskText(r.title)}</div>
       </div>
-      <div class="rec-desc">${r.description}</div>
+      <div class="rec-desc">${maskText(r.description)}</div>
       <div class="rec-action">${r.action}</div>
       <div class="rec-footer">
         ${impactBadge(r.impact)}
         <span class="rec-savings">Save ≈ ${fmtCost(r.savings_usd)}</span>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── Projects ──────────────────────────────────────────────────────────────
@@ -823,8 +880,9 @@ function renderProjects(data) {
   }
   tbody.innerHTML = data.map(p=>{
     const model = (p.models||'').split(',')[0].replace('claude-','').split('-').slice(0,2).join('-') || '—';
+    const displayProj = maskName(p.project);
     return `<tr>
-      <td class="td-project" title="${p.project}">${p.project}</td>
+      <td class="td-project" title="${maskNames ? '(click eye icon to reveal)' : p.project}">${displayProj}</td>
       <td class="td-mono">${p.sessions}</td>
       <td class="td-cost">${fmtCost(p.total_cost)}</td>
       <td class="td-cost" style="color:var(--text2)">${fmtCost(p.cost_7d)}</td>
@@ -832,7 +890,7 @@ function renderProjects(data) {
       <td class="td-mono">${p.efficiency_score}</td>
       <td>${miniGrade(p.efficiency_grade)}</td>
       <td class="td-mono" style="color:var(--text3)" title="${p.last_active}">${fmtRelative(p.last_active)}</td>
-      <td class="td-mono" style="color:var(--text3)" title="${p.models||''}">${model}</td>
+      <td class="td-mono" style="color:var(--text3)">${model}</td>
     </tr>`;
   }).join('');
 }
@@ -853,21 +911,23 @@ async function loadSessions() {
   }
 
   tbody.innerHTML = sessions.map(s=>{
-    const model  = (s.model||'—').replace('claude-','').split('-').slice(0,2).join('-');
-    const sid    = s.session_id.slice(0,8)+'…';
-    const isAnom = s.is_anomaly;
+    const model    = (s.model||'—').replace('claude-','').split('-').slice(0,2).join('-');
+    const sid      = maskSessionId(s.session_id);
+    const projDisp = maskName(s.project);
+    const branchDisp = maskBranch(s.git_branch);
+    const isAnom   = s.is_anomaly;
     return `<tr class="${isAnom?'anomaly-row':''}">
-      <td class="td-mono" title="${s.session_id}">${isAnom?'<span class="anomaly-dot"></span>':''}${sid}</td>
-      <td class="td-project" title="${s.project}">${s.project}</td>
+      <td class="td-mono" title="${maskNames ? '(click eye icon to reveal)' : s.session_id}">${isAnom?'<span class="anomaly-dot"></span>':''}${sid}</td>
+      <td class="td-project" title="${maskNames ? '(click eye icon to reveal)' : s.project}">${projDisp}</td>
       <td class="td-mono" style="color:var(--text3)" title="${s.last_seen}">${fmtDateTime(s.last_seen)}</td>
-      <td class="td-cost ${isAnom?'':''}"><span style="${isAnom?'color:var(--red)':''}">${fmtCost(s.cost_usd)}</span></td>
+      <td class="td-cost"><span style="${isAnom?'color:var(--red)':''}">${fmtCost(s.cost_usd)}</span></td>
       <td class="td-mono">${fmtTokens(s.input_tokens)}</td>
       <td class="td-mono">${fmtTokens(s.output_tokens)}</td>
       <td>${cacheBarHtml(s.cache_efficiency)}</td>
       <td>${miniGrade(s.efficiency_grade)}</td>
       <td class="td-mono">${s.message_count}</td>
       <td class="td-mono" style="color:var(--text3)" title="${s.model||''}">${model}</td>
-      <td class="td-mono" style="color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis" title="${s.git_branch||''}">${s.git_branch||'—'}</td>
+      <td class="td-mono" style="color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis" title="${maskNames ? '' : (s.git_branch||'')}">${branchDisp}</td>
     </tr>`;
   }).join('');
 }
@@ -909,6 +969,7 @@ async function loadAll() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  syncEyeIcons();
   loadAll();
   setInterval(loadAll, 30_000);
 });

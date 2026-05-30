@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Meridian — AI Engineering Intelligence Platform
+TokenLens — AI Engineering Intelligence Platform
 cli.py: Command-line entry point.
 
 Usage:
@@ -55,7 +55,7 @@ def _human_tokens(n: int) -> str:
 
 
 def cmd_scan(args):
-    print(f"\n{BLU}⚡ Meridian — scanning usage logs…{RESET}\n")
+    print(f"\n{BLU}⚡ TokenLens — scanning usage logs…{RESET}\n")
     result = scanner.scan(verbose=args.verbose)
     print(f"  Files scanned  : {BOLD}{result['files_scanned']}{RESET}")
     print(f"  Files skipped  : {DIM}{result['files_skipped']}{RESET}")
@@ -72,7 +72,7 @@ def cmd_summary(args):
     roi   = s["roi"]
 
     print(f"\n{BOLD}{'─'*52}{RESET}")
-    print(f"  {BOLD}{MAG}Meridian  AI Engineering Intelligence{RESET}")
+    print(f"  {BOLD}{MAG}TokenLens  AI Engineering Intelligence{RESET}")
     print(f"{'─'*52}")
     print(f"  Total spend       {BOLD}${s['total_cost']:.4f}{RESET}")
     print(f"  Total tokens      {BOLD}{_human_tokens(s['total_tokens'])}{RESET}")
@@ -171,8 +171,8 @@ import os
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="meridian",
-        description="Meridian — AI Engineering Intelligence Platform",
+        prog="tokenlens",
+        description="TokenLens — AI Engineering Intelligence Platform",
     )
     sub = parser.add_subparsers(dest="command")
 

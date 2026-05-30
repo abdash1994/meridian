@@ -11,7 +11,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-DB_PATH = Path.home() / ".meridian" / "meridian.db"
+DB_PATH = Path.home() / ".tokenlens" / "tokenlens.db"
 
 PRICING = {
     "opus":   {"input": 5.00,  "output": 25.00, "cache_write": 6.25, "cache_read": 0.50},
