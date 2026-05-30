@@ -1,5 +1,5 @@
 """
-Meridian - AI Engineering Intelligence Platform
+TokenLens - AI Engineering Intelligence Platform
 analyzer.py: Intelligence engine. Computes Efficiency Scores, detects anomalies,
 generates actionable recommendations, and calculates developer ROI.
 """

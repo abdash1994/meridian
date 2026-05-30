@@ -1,5 +1,5 @@
 """
-Meridian - AI Engineering Intelligence Platform
+TokenLens - AI Engineering Intelligence Platform
 scanner.py: Incremental JSONL parser. Reads Claude Code session logs,
 extracts token usage, and persists to a local SQLite database.
 """
