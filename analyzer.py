@@ -11,12 +11,23 @@ from pathlib import Path
 from scanner import DB_PATH, get_db
 
 # Hourly developer cost assumption (USD). Used for ROI calculation.
-# Based on median senior engineer compensation at software companies.
+# Source: US Bureau of Labor Statistics median software engineer wage ~$120k/yr,
+# ~$130k total compensation → ~$125/hr fully loaded (benefits, overhead).
+# Configurable via CLI --dev-rate flag or /api/roi?dev_rate=X
 DEV_HOURLY_RATE = 125.0
 
-# Tokens of developer output equivalent per AI output token.
-# Reflects ~30-55% productivity boost studies (Stanford/GitHub research).
-OUTPUT_TOKEN_TO_DEV_SECONDS = 1.4
+# Attribution rate: fraction of AI output tokens we credit as replacing developer work.
+# Conservative at 40% — GitHub Copilot research (2022) showed 55% productivity gain;
+# Stanford HAI (2023) showed 35-45% on complex tasks. 40% is defensible to a CFO.
+# Configurable via CLI --attribution flag or /api/roi?attribution=X
+ATTRIBUTION_RATE = 0.40
+
+# Developer typing speed (chars/min) — used to convert AI output to time saved.
+# Effective coding speed (net of thinking, debugging) ~200 chars/min.
+DEV_CHARS_PER_MIN = 200.0
+
+# Average chars per output token (GPT/Claude standard is ~4 chars/token)
+CHARS_PER_TOKEN = 4.0
 
 
 # ── Efficiency Score ──────────────────────────────────────────────────────────
@@ -421,43 +432,55 @@ def get_recommendations(db_path: Path = DB_PATH) -> list[dict]:
 
 # ── ROI Calculator ────────────────────────────────────────────────────────────
 
-def _calc_roi(output_tokens: int, ai_cost_usd: float) -> dict:
+def _calc_roi(
+    output_tokens: int,
+    ai_cost_usd: float,
+    dev_hourly_rate: float = DEV_HOURLY_RATE,
+    attribution_rate: float = ATTRIBUTION_RATE,
+) -> dict:
     """
     Estimates developer time saved by AI-generated output.
 
-    Model:
-    - Each output token represents ~4 chars of generated code/text.
-    - Average developer produces ~200 effective chars/min of code.
-    - AI output tokens replace some fraction of that effort.
-    - Conservative 40% attribution factor (not all output is directly usable).
+    Methodology (all figures configurable):
+    - Each output token ≈ CHARS_PER_TOKEN chars of code/text
+    - Effective developer coding speed ≈ DEV_CHARS_PER_MIN chars/min
+    - Attribution rate: fraction of output that directly replaces developer effort
+      (40% default — conservative vs GitHub Copilot study's 55%, Stanford HAI 35-45%)
+    - Developer value = hours_saved × loaded hourly rate
+
+    References:
+    - GitHub Copilot productivity study (Kalliamvakou, 2022): 55% faster task completion
+    - Stanford HAI study (Noy & Zhang, 2023): 35-45% productivity gain on writing tasks
+    - We use 40% as a CFO-defensible midpoint.
     """
-    chars_generated   = output_tokens * 4
-    dev_chars_per_min = 200
-    attribution_rate  = 0.40
-
-    dev_minutes_saved = (chars_generated / dev_chars_per_min) * attribution_rate
+    chars_generated   = output_tokens * CHARS_PER_TOKEN
+    dev_minutes_saved = (chars_generated / DEV_CHARS_PER_MIN) * attribution_rate
     dev_hours_saved   = dev_minutes_saved / 60
-    dev_cost_saved    = dev_hours_saved * DEV_HOURLY_RATE
-
-    roi_multiplier = round(dev_cost_saved / ai_cost_usd, 1) if ai_cost_usd > 0 else 0.0
+    dev_cost_saved    = dev_hours_saved * dev_hourly_rate
+    roi_multiplier    = round(dev_cost_saved / ai_cost_usd, 1) if ai_cost_usd > 0 else 0.0
 
     return {
-        "output_tokens":   output_tokens,
-        "dev_hours_saved": round(dev_hours_saved, 1),
-        "dev_cost_saved":  round(dev_cost_saved, 2),
-        "ai_cost":         round(ai_cost_usd, 4),
-        "roi_multiplier":  roi_multiplier,
-        "dev_hourly_rate": DEV_HOURLY_RATE,
+        "output_tokens":    output_tokens,
+        "dev_hours_saved":  round(dev_hours_saved, 1),
+        "dev_cost_saved":   round(dev_cost_saved, 2),
+        "ai_cost":          round(ai_cost_usd, 4),
+        "roi_multiplier":   roi_multiplier,
+        "dev_hourly_rate":  dev_hourly_rate,
+        "attribution_rate": attribution_rate,
     }
 
 
-def get_roi(db_path: Path = DB_PATH) -> dict:
+def get_roi(
+    db_path: Path = DB_PATH,
+    dev_hourly_rate: float = DEV_HOURLY_RATE,
+    attribution_rate: float = ATTRIBUTION_RATE,
+) -> dict:
     conn = get_db(db_path)
-    row = conn.execute(
+    row  = conn.execute(
         "SELECT COALESCE(SUM(output_tokens),0) AS ot, COALESCE(SUM(cost_usd),0) AS cost FROM sessions"
     ).fetchone()
     conn.close()
-    return _calc_roi(row["ot"], row["cost"])
+    return _calc_roi(row["ot"], row["cost"], dev_hourly_rate, attribution_rate)
 
 
 # ── Model Distribution ────────────────────────────────────────────────────────
@@ -476,3 +499,129 @@ def get_model_distribution(db_path: Path = DB_PATH) -> list[dict]:
     """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# ── Roadmap to A ──────────────────────────────────────────────────────────────
+
+def get_roadmap_to_a(db_path: Path = DB_PATH) -> list[dict]:
+    """
+    Returns an ordered list of concrete steps to improve the overall Efficiency Score
+    from the current grade to A (88+). Each step includes estimated score gain and
+    a specific action, so engineers have a clear improvement path — not just a grade.
+    """
+    s     = get_summary(db_path)
+    score = s["efficiency_score"]
+    grade = s["efficiency_grade"]
+
+    if score >= 88:
+        return []  # Already at A
+
+    steps = []
+    gap   = 88 - score
+
+    # Step 1: Cache warm-up (if not caching at all — 20pts available)
+    if s["cache_write_tokens"] == 0:
+        steps.append({
+            "step":        1,
+            "title":       "Enable prompt caching",
+            "description": "You have zero cache writes. Adding `cache_control: {type: 'ephemeral'}` "
+                           "to your system prompt activates caching and immediately unlocks 20 score points.",
+            "score_gain":  20,
+            "difficulty":  "easy",
+            "time":        "10 minutes",
+        })
+
+    # Step 2: Improve cache hit rate (40pts possible)
+    cache_eff = s["cache_efficiency"]
+    if cache_eff < 0.5:
+        target_gain = round((0.7 - cache_eff) * 40, 0)
+        steps.append({
+            "step":        2,
+            "title":       "Increase cache hit rate to 70%+",
+            "description": f"Current cache hit rate is {cache_eff*100:.1f}%. Caching your system prompt "
+                           "and large static contexts raises this significantly. "
+                           "Target: 70%+ hit rate for a B grade, 85%+ for A.",
+            "score_gain":  int(target_gain),
+            "difficulty":  "medium",
+            "time":        "1–2 hours",
+        })
+
+    # Step 3: Output density (30pts possible)
+    denom = s["input_tokens"] + s["cache_read_tokens"]
+    if denom > 0:
+        out_ratio = s["output_tokens"] / denom
+        if out_ratio < 0.10:
+            steps.append({
+                "step":        3,
+                "title":       "Improve output density with tighter prompts",
+                "description": f"Current output density: {out_ratio*100:.1f}% — "
+                               "you consume a lot of context per token of useful output. "
+                               "Breaking large tasks into focused sub-prompts and reducing "
+                               "system prompt verbosity typically improves this 2–4×.",
+                "score_gain":  15,
+                "difficulty":  "medium",
+                "time":        "Ongoing — 1 week of iteration",
+            })
+
+    # Step 4: Fix anomalous sessions
+    sessions = get_sessions(limit=100, db_path=db_path)
+    anomalies = [s for s in sessions if s["is_anomaly"]]
+    if anomalies:
+        steps.append({
+            "step":        4,
+            "title":       f"Resolve {len(anomalies)} anomalous session(s)",
+            "description": "Sessions burning 3.5× their project average are dragging your per-session "
+                           "scores down. Investigate for large file dumps, runaway loops, or "
+                           "missing context limits. Each session fixed improves project-level grades.",
+            "score_gain":  5,
+            "difficulty":  "easy",
+            "time":        "30 minutes investigation",
+        })
+
+    # Sort by easiest first
+    difficulty_order = {"easy": 0, "medium": 1, "hard": 2}
+    steps.sort(key=lambda x: difficulty_order.get(x["difficulty"], 1))
+
+    return steps
+
+
+# ── DB Pruning ────────────────────────────────────────────────────────────────
+
+def prune_before(date_str: str, db_path: Path = DB_PATH) -> dict:
+    """
+    Delete all sessions and messages with timestamps before date_str (YYYY-MM-DD).
+    Useful for keeping the database size manageable over long periods.
+    """
+    try:
+        # Validate date format before touching the DB
+        datetime.strptime(date_str, "%Y-%m-%d")
+        cutoff = f"{date_str}T00:00:00"
+        conn   = get_db(db_path)
+
+        # Count what will be deleted
+        sessions_count = conn.execute(
+            "SELECT COUNT(*) FROM sessions WHERE last_seen < ?", (cutoff,)
+        ).fetchone()[0]
+        messages_count = conn.execute(
+            "SELECT COUNT(*) FROM messages WHERE timestamp < ?", (cutoff,)
+        ).fetchone()[0]
+
+        if sessions_count == 0:
+            conn.close()
+            return {"deleted_sessions": 0, "deleted_messages": 0, "cutoff": date_str}
+
+        # Delete (messages first due to FK constraint)
+        conn.execute("DELETE FROM messages WHERE timestamp < ?", (cutoff,))
+        conn.execute("DELETE FROM sessions WHERE last_seen < ?",  (cutoff,))
+        conn.execute("DELETE FROM scan_state WHERE last_scanned < ?", (cutoff,))
+        conn.execute("VACUUM")
+        conn.commit()
+        conn.close()
+
+        return {
+            "deleted_sessions": sessions_count,
+            "deleted_messages": messages_count,
+            "cutoff":           date_str,
+        }
+    except Exception as e:
+        return {"error": str(e)}

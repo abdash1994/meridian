@@ -193,18 +193,24 @@ def _process_file(conn: sqlite3.Connection, path: Path, project_name: str, verbo
                 if obj.get("type") != "assistant":
                     continue
 
-                msg   = obj.get("message", {})
-                usage = msg.get("usage", {})
-                if not usage:
+                msg   = obj.get("message") or {}
+                if not isinstance(msg, dict):
+                    continue
+                usage = msg.get("usage") or {}
+                if not isinstance(usage, dict) or not usage:
                     continue
 
-                model         = msg.get("model", "unknown")
-                input_t       = usage.get("input_tokens", 0)
-                output_t      = usage.get("output_tokens", 0)
-                cache_write_t = usage.get("cache_creation_input_tokens", 0)
-                cache_read_t  = usage.get("cache_read_input_tokens", 0)
+                # Schema-safe extraction — any missing/renamed field defaults to 0
+                # Anthropic may rename keys; we degrade gracefully rather than crash.
+                model         = str(msg.get("model") or "unknown")
+                input_t       = int(usage.get("input_tokens") or 0)
+                output_t      = int(usage.get("output_tokens") or 0)
+                # cache_creation_input_tokens is the current key; fall back to 0
+                cache_write_t = int(usage.get("cache_creation_input_tokens") or 0)
+                # cache_read_input_tokens is the current key; fall back to 0
+                cache_read_t  = int(usage.get("cache_read_input_tokens") or 0)
                 cost          = _calc_cost(model, input_t, output_t, cache_write_t, cache_read_t)
-                ts            = obj.get("timestamp", "")
+                ts            = str(obj.get("timestamp") or "")
 
                 session_stats["input"]       += input_t
                 session_stats["output"]      += output_t
@@ -221,10 +227,11 @@ def _process_file(conn: sqlite3.Connection, path: Path, project_name: str, verbo
 
                 if not session_stats["model"] and model != "unknown":
                     session_stats["model"] = model
+                # Schema-safe metadata: these fields are undocumented internals
                 if not session_stats["entrypoint"]:
-                    session_stats["entrypoint"] = obj.get("entrypoint")
+                    session_stats["entrypoint"] = obj.get("entrypoint") or obj.get("entry_point")
                 if not session_stats["git_branch"]:
-                    session_stats["git_branch"] = obj.get("gitBranch")
+                    session_stats["git_branch"] = obj.get("gitBranch") or obj.get("git_branch")
                 if not session_stats["cwd"]:
                     session_stats["cwd"] = obj.get("cwd")
 
