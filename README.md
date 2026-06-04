@@ -156,9 +156,19 @@ If you fork or build on this project, you must visibly credit the original autho
 
 ## Roadmap
 
-- **Phase 1 (done):** Individual tool — dashboard, efficiency scoring, recommendations, ROI
-- **Phase 2:** Team edition — central aggregation, org-level roll-up, budget alerts, Slack
-- **Phase 3:** Enterprise governance — compliance reports, sensitive-data detection, CI/CD integration
+- **Phase 1 (done):** Individual tool — dashboard, efficiency scoring, recommendations, ROI, multi-tool plugin architecture
+- **Phase 2:** Multi-tool support (OpenAI API, GitHub Copilot) + team aggregation, budget guardrails, governance reports
+- **Phase 3:** Enterprise — compliance reports, sensitive-data detection, CI/CD integration, VS Code extension
+
+### Phase 2 — Want early access?
+
+Phase 2 ships when there's enough signal. Here's how to signal:
+
+- ⭐ **Star this repo** — the simplest vote
+- 🐛 **[Open an issue](https://github.com/abdash1994/tokenlens/issues/new?title=Phase+2+interest&body=Tool+I+use:+%0ATeam+size:+%0AWhat+I+need:)** tagged `phase-2` — tell us your tool stack (Copilot? OpenAI? Cursor?) and team size
+- 💬 **[DM on LinkedIn](https://linkedin.com/in/adityabikramdash)** — for direct early access conversation
+
+[**→ Full Phase 2 specification (PHASE2-PREVIEW.md)**](PHASE2-PREVIEW.md)
 
 ---
 

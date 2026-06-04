@@ -583,6 +583,73 @@
     </div>
   </div>
 
+  <!-- ══ SLIDE 11: PHASE 2 ══════════════════════════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="eyebrow">Phase 2 — Coming Next</div>
+    <div class="headline" style="font-size:36px">One tool → <span>Every AI tool your team uses</span></div>
+    <div class="subhead" style="margin-bottom:24px">Phase 1 proved the intelligence layer works on Claude Code. Phase 2 makes it work across every AI coding tool — with team aggregation, budget guardrails, and governance reports.</div>
+
+    <div class="g2" style="flex:1;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="section-title">Multi-tool source architecture</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px">
+            <span class="live-badge"><span class="ld"></span>Active</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Claude Code</div><div style="font-size:11px;color:var(--text3)">Local JSONL logs · no credentials needed</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px">
+            <span class="pill pill-indigo">Phase 2</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">OpenAI API</div><div style="font-size:11px;color:var(--text3)">GPT-4o, GPT-4-turbo · requires OPENAI_API_KEY</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px">
+            <span class="pill pill-indigo">Phase 2</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">GitHub Copilot</div><div style="font-size:11px;color:var(--text3)">Org usage API · requires GITHUB_TOKEN with billing scope</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;opacity:.5">
+            <span class="pill" style="background:var(--surface);color:var(--text3);border:1px solid var(--border)">Pending</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Cursor / Windsurf</div><div style="font-size:11px;color:var(--text3)">Waiting for platform to expose local token logs</div></div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+          <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:6px">PLUGIN ARCHITECTURE — ALREADY IN CODEBASE</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8">
+            <div>sources/claude_code.py   <span style="color:var(--green)">✓ active</span></div>
+            <div>sources/openai_api.py    <span style="color:var(--indigo)">· phase 2</span></div>
+            <div>sources/github_copilot.py <span style="color:var(--indigo)">· phase 2</span></div>
+            <div>sources/cursor.py        <span style="color:var(--text3)">· pending</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="section-title">Phase 2 features</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="feat-card">
+            <div class="feat-title">Team aggregation</div>
+            <div class="feat-body" style="font-size:12px">Central self-hosted collection agent. Team-level efficiency scores, per-engineer breakdown, "top 10 wasteful sessions across the team this week."</div>
+          </div>
+          <div class="feat-card">
+            <div class="feat-title">Budget guardrails</div>
+            <div class="feat-body" style="font-size:12px">Monthly spend caps per project or team. Slack / email alerts at 50%, 80%, 95%. Hard-stop option. Retrospective: "You went 40% over budget in April."</div>
+          </div>
+          <div class="feat-card">
+            <div class="feat-title">Governance reports</div>
+            <div class="feat-body" style="font-size:12px">Audit trail of models used, regions, engineers. GDPR/SOC2 data residency report. Sensitive pattern detection. Monthly PDF for finance teams.</div>
+          </div>
+        </div>
+        <div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:14px 16px">
+          <div style="font-size:12px;color:var(--text1);line-height:1.7">
+            <strong style="color:var(--indigo)">Market validation:</strong> Phase 2 ships when the market signals it. Star the repo, open an issue with your tool stack — that's the signal.
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <a href="https://github.com/abdash1994/tokenlens" target="_blank" style="font-size:11px;color:var(--indigo);text-decoration:none;background:rgba(99,102,241,.1);padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,.2)">⭐ Star to signal interest</a>
+            <a href="https://github.com/abdash1994/tokenlens/blob/main/PHASE2-PREVIEW.md" target="_blank" style="font-size:11px;color:var(--text2);text-decoration:none;background:var(--surface);padding:4px 10px;border-radius:6px;border:1px solid var(--border)">Full Phase 2 spec →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /deck -->
 
 <!-- NAV -->
@@ -607,8 +674,9 @@ const SLIDE_TITLES = [
   "Developer ROI — The CTO Pitch",
   "vs Competition — What's Different",
   "Roadmap — Individual → Enterprise",
+  "Phase 2 — Every AI Tool Your Team Uses",
 ];
-const TOTAL = 10;
+const TOTAL = 11;
 let current = 0;
 
 // ── Nav dots ──────────────────────────────────────────────────────────────
