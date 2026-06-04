@@ -276,6 +276,43 @@
     .eye-btn.unmasked{color:var(--green)}
     .eye-svg{display:block;pointer-events:none}
 
+    /* ── ROADMAP ── */
+    .roadmap-header{
+      display:flex;align-items:center;gap:16px;
+      padding:18px 22px;border-bottom:1px solid var(--border);
+    }
+    .grade-arrow{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text3)}
+    .grade-arrow .arrow{font-size:16px;color:var(--text3)}
+    .roadmap-steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:20px}
+    .roadmap-step{
+      background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      padding:16px 18px;display:flex;flex-direction:column;gap:10px;
+      position:relative;overflow:hidden;transition:border-color .2s;
+    }
+    .roadmap-step:hover{border-color:var(--border2)}
+    .roadmap-step .step-accent{position:absolute;top:0;left:0;bottom:0;width:3px}
+    .roadmap-step-num{
+      width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;
+      background:var(--border2);color:var(--text2);
+    }
+    .roadmap-step-title{font-size:13px;font-weight:700;line-height:1.3}
+    .roadmap-step-desc{font-size:12px;color:var(--text2);line-height:1.6;flex:1}
+    .roadmap-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+    .score-gain{
+      font-size:12px;font-weight:700;color:var(--green);
+      background:rgba(16,185,129,.1);padding:2px 8px;border-radius:12px;
+    }
+    .diff-easy  {background:rgba(16,185,129,.1);color:var(--green)}
+    .diff-medium{background:rgba(245,158,11,.1);color:var(--amber)}
+    .diff-hard  {background:rgba(239,68,68,.1);color:var(--red)}
+    .diff-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase}
+    .roadmap-time{font-size:11px;color:var(--text3)}
+    .roadmap-done{
+      text-align:center;padding:32px 24px;
+      display:flex;align-items:center;justify-content:center;gap:12px;
+    }
+
     /* ── FOOTER ── */
     footer{
       margin-top:auto;padding:16px 28px;border-top:1px solid var(--border);
@@ -454,6 +491,10 @@
       <div class="no-recs"><div class="check">⏳</div><div>Analysing patterns…</div></div>
     </div>
   </div>
+
+  <!-- ROADMAP TO A -->
+  <div class="section-hdr">Roadmap to Grade A</div>
+  <div id="roadmapWrap" style="margin-bottom:28px"></div>
 
   <!-- PROJECTS -->
   <div class="section-hdr">Projects</div>
@@ -957,13 +998,93 @@ async function triggerScan() {
   }
 }
 
+// ── Roadmap to A ──────────────────────────────────────────────────────────
+async function loadRoadmap(summary) {
+  const wrap  = $('roadmapWrap');
+  const grade = summary ? summary.efficiency_grade : 'D';
+  const score = summary ? summary.efficiency_score : 0;
+
+  // If already A, show a celebration panel
+  if (grade === 'A') {
+    wrap.innerHTML = `
+      <div class="panel">
+        <div class="roadmap-done">
+          <span class="grade-badge grade-A" style="width:38px;height:38px;font-size:18px;border-radius:10px">A</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--green)">You're at A grade — fully optimised!</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:3px">No further efficiency gains identified. Keep maintaining your cache patterns.</div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const steps = await api('/api/roadmap');
+
+  if (!steps || !steps.length) {
+    wrap.innerHTML = `
+      <div class="panel">
+        <div class="roadmap-done" style="color:var(--text3);font-size:13px">
+          No roadmap steps available yet — run a scan first.
+        </div>
+      </div>`;
+    return;
+  }
+
+  const gc = gradeClass(grade);
+  const totalGain = steps.reduce((a, s) => a + (s.score_gain || 0), 0);
+  const projected = Math.min(score + totalGain, 100);
+  const projGrade = projected >= 88 ? 'A' : projected >= 74 ? 'B' : projected >= 58 ? 'C' : projected >= 40 ? 'D' : 'F';
+
+  const diffColors = { easy: '#10B981', medium: '#F59E0B', hard: '#EF4444' };
+  const diffClass  = { easy: 'diff-easy', medium: 'diff-medium', hard: 'diff-hard' };
+
+  const stepsHtml = steps.map((step, i) => {
+    const color = diffColors[step.difficulty] || '#6366F1';
+    return `
+    <div class="roadmap-step">
+      <div class="step-accent" style="background:${color}"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="roadmap-step-num">${step.step}</div>
+        <div class="roadmap-step-title">${step.title}</div>
+      </div>
+      <div class="roadmap-step-desc">${step.description}</div>
+      <div class="roadmap-meta">
+        <span class="score-gain">+${step.score_gain} pts</span>
+        <span class="diff-badge ${diffClass[step.difficulty] || ''}">${step.difficulty}</span>
+        <span class="roadmap-time">${step.time}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="panel">
+      <div class="roadmap-header">
+        <div class="grade-arrow">
+          <span class="grade-badge ${gc}" style="width:34px;height:34px;font-size:16px;border-radius:9px">${grade}</span>
+          <span class="arrow">→</span>
+          <span class="grade-badge ${gradeClass(projGrade)}" style="width:34px;height:34px;font-size:16px;border-radius:9px;opacity:.7">${projGrade}</span>
+          <span class="arrow">→</span>
+          <span class="grade-badge grade-A" style="width:34px;height:34px;font-size:16px;border-radius:9px">A</span>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600">Follow these ${steps.length} step${steps.length>1?'s':''} to reach A grade</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">
+            Completing all steps adds ~${totalGain} pts · projected score: ${projected.toFixed(0)}/100
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-steps">${stepsHtml}</div>
+    </div>`;
+}
+
 // ── Load all ──────────────────────────────────────────────────────────────
 async function loadAll() {
   setLoading(true);
   try {
     const s = await loadSummary();
     loadTokenDonut(s);
-    await Promise.all([loadChart(), loadRecs(), loadProjects(), loadSessions()]);
+    await Promise.all([loadChart(), loadRecs(), loadRoadmap(s), loadProjects(), loadSessions()]);
   } catch(e) {
     console.error('Load error:', e);
     showToast('Failed to load data', '❌');
