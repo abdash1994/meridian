@@ -47,6 +47,8 @@ python3 cli.py dashboard
 
 Opens your browser at **http://localhost:7777** — dashboard + pitch deck ready.
 
+> **Tip:** Run this from your system **Terminal app** (not from inside an IDE like Cursor or VS Code) so the server stays alive as long as you need it. Closing the terminal window stops the server.
+
 ---
 
 ## How It Works
